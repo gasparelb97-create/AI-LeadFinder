@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Lead Finder - Prototipo</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    h1 { margin-bottom: 4px; }
+    .subtitle { color: #64748b; margin-bottom: 24px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    label { display: block; font-weight: 500; margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    button:hover { background: #2563eb; }
+    #risultati { margin-top: 20px; }
+    .lead {
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .note { font-size: 13px; color: #64748b; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>AI Lead Finder</h1>
+  <p class="subtitle">Prototipo generico — cerca clienti potenziali per servizi di AI</p>
+
+  <div class="card">
+    <label for="settore">Settore</label>
+    <input type="text" id="settore" placeholder="es. agenzia marketing, e-commerce, ristorante" value="agenzia marketing">
+
+    <label for="zona">Zona</label>
+    <input type="text" id="zona" placeholder="es. Milano, Roma, Torino" value="Milano">
+
+    <button onclick="cercaLead()">Cerca lead</button>
+    <p class="note">Nota: questa è una demo. In produzione si collegherà a Google Places o altre fonti pubbliche.</p>
+  </div>
+
+  <div id="risultati"></div>
+
+  <div class="card">
+    <h3>Messaggio suggerito</h3>
+    <pre id="messaggio" style="white-space: pre-wrap; font-family: inherit; background: #f8fafc; padding: 12px; border-radius: 8px;">Ciao [Nome],
+
+ho visto che [Azienda] si occupa di [settore] a [zona]. Molte realtà come la vostra usano l'intelligenza artificiale per automatizzare attività ripetitive e risparmiare tempo.
+
+Se ti interessa una soluzione semplice, posso spiegarti in 2 minuti come funziona.
+
+Fammi sapere se vuoi maggiori dettagli.
+
+Grazie,
+[Tuo nome]</pre>
+  </div>
+
+  <script>
+    async function cercaLead() {
+      const settore = document.getElementById('settore').value;
+      const zona = document.getElementById('zona').value;
+      const risultati = document.getElementById('risultati');
+
+      risultati.innerHTML = '<div class="card">Ricerca in corso...</div>';
+
+      // Demo locale (in produzione chiamerà il Worker reale)
+      setTimeout(() => {
+        const leadDemo = [
+          {
+            nome: "Agenzia Esempio SRL",
+            settore: settore,
+            zona: zona,
+            motivo: "Gestisce molti clienti e contenuti → potrebbe aver bisogno di AI per automatizzare risposte e creazione contenuti",
+            contatto: "da arricchire"
+          },
+          {
+            nome: "Studio Professionale Demo",
+            settore: settore,
+            zona: zona,
+            motivo: "Lavoro ripetitivo su documenti e clienti → candidato per automazione AI",
+            contatto: "da arricchire"
+          }
+        ];
+
+        risultati.innerHTML = '<h3>Lead trovati</h3>' +
+          leadDemo.map(l => `
+            <div class="lead">
+              <strong>${l.nome}</strong><br>
+              Settore: ${l.settore} • Zona: ${l.zona}<br>
+              <em>${l.motivo}</em><br>
+              <small>Contatto: ${l.contatto}</small>
+            </div>
+          `).join('');
+      }, 600);
+    }
+  </script>
+</body>
+</html>
