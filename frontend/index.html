@@ -57,6 +57,18 @@
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
+      margin-bottom: 8px;
+    }
+    button.secondary {
+      width: 100%;
+      background: #0ea5e9;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
     }
     .lead {
       background: #eff6ff;
@@ -117,6 +129,7 @@
     <input type="text" id="zona" value="Milano" placeholder="es. Roma, Napoli, Firenze">
 
     <button class="main" onclick="cerca()">Mostrami i clienti</button>
+    <button class="secondary" onclick="cercaEmailGoogle()">Cerca email su Google</button>
   </div>
 
   <div id="risultati"></div>
@@ -124,7 +137,7 @@
   <div class="box" id="boxMessaggio" style="display:none;">
     <strong>Messaggio pronto</strong>
     <div class="messaggio" id="messaggio"></div>
-    <p style="font-size:13px; color:#64748b; margin-top:8px;">Premi “Apri email” per aprire l’app di posta con il messaggio già scritto (mittente: proggettoapp@gmail.com). Inserisci l’indirizzo del cliente e invia.</p>
+    <p style="font-size:13px; color:#64748b; margin-top:8px;">Premi “Apri email” per aprire l’app di posta con il messaggio già scritto. Inserisci l’indirizzo del cliente e invia.</p>
   </div>
 
   <script>
@@ -171,6 +184,13 @@
         document.getElementById('boxMessaggio').style.display = 'block';
         aggiornaMessaggio(settore, zona);
       }, 600);
+    }
+
+    function cercaEmailGoogle() {
+      const settore = document.getElementById('settore').value || 'attivita';
+      const zona = document.getElementById('zona').value || 'Italia';
+      const query = encodeURIComponent(`${settore} ${zona} email OR contatti OR "info@"`);
+      window.open(`https://www.google.com/search?q=${query}`, '_blank');
     }
 
     function aggiornaMessaggio(settore, zona, nome = '') {
@@ -230,9 +250,7 @@ Grazie`;
       const testo = aggiornaMessaggio(settore, lead.zona, lead.nome);
       const subject = encodeURIComponent('Proposta AI per ' + lead.nome);
       const body = encodeURIComponent(testo);
-      // Apre l'app email con il messaggio precompilato. L'utente deve inserire l'indirizzo del destinatario.
       window.location.href = `mailto:?subject=${subject}&body=${body}`;
-      // Segna come contattato
       cambiaStatus(id, 'contattato');
     }
 
