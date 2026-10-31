@@ -88,6 +88,7 @@
     }
     .btn-send { background: #16a34a; color: white; }
     .btn-status { background: #e2e8f0; }
+    .btn-google { background: #0ea5e9; color: white; }
     .messaggio {
       background: #f8fafc;
       padding: 14px;
@@ -193,6 +194,11 @@
       window.open(`https://www.google.com/search?q=${query}`, '_blank');
     }
 
+    function cercaEmailLead(nome, zona) {
+      const query = encodeURIComponent(`"${nome}" ${zona} email OR contatti OR "info@" OR "@"`);
+      window.open(`https://www.google.com/search?q=${query}`, '_blank');
+    }
+
     function aggiornaMessaggio(settore, zona, nome = '') {
       const testo = `Ciao${nome ? ' ' + nome : ''},
 
@@ -220,6 +226,7 @@ Grazie`;
             <span class="status-badge ${l.status}">${statusLabel(l.status)}</span><br>
             Zona: ${l.zona}<br>
             <em>${l.motivo}</em><br>
+            <button class="btn-google" onclick="cercaEmailLead('${l.nome.replace(/'/g, "\\'")}', '${l.zona}')">Cerca email</button>
             <button class="btn-send" onclick="apriEmail(${l.id})">Apri email</button>
             <button class="btn-status" onclick="cambiaStatus(${l.id}, 'contattato')">Contattato</button>
             <button class="btn-status" onclick="cambiaStatus(${l.id}, 'visto')">Ha visto</button>
