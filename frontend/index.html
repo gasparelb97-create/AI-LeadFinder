@@ -99,7 +99,7 @@
 </head>
 <body>
   <h1>Trova clienti</h1>
-  <p class="intro">Scegli il tipo di attività e la zona. Ti mostro aziende e puoi preparare il messaggio.</p>
+  <p class="intro">Scegli il tipo di attività e la zona. Ti mostro aziende e puoi preparare il messaggio da <strong>proggettoapp@gmail.com</strong>.</p>
 
   <div class="box">
     <label>Tipo di attività</label>
@@ -124,7 +124,7 @@
   <div class="box" id="boxMessaggio" style="display:none;">
     <strong>Messaggio pronto</strong>
     <div class="messaggio" id="messaggio"></div>
-    <p style="font-size:13px; color:#64748b; margin-top:8px;">Copia il messaggio e invialo manualmente (email o WhatsApp). Il tracking completo arriverà con l'integrazione reale.</p>
+    <p style="font-size:13px; color:#64748b; margin-top:8px;">Premi “Apri email” per aprire l’app di posta con il messaggio già scritto (mittente: proggettoapp@gmail.com). Inserisci l’indirizzo del cliente e invia.</p>
   </div>
 
   <script>
@@ -169,8 +169,12 @@
         renderLeads();
 
         document.getElementById('boxMessaggio').style.display = 'block';
-        document.getElementById('messaggio').textContent =
-`Ciao,
+        aggiornaMessaggio(settore, zona);
+      }, 600);
+    }
+
+    function aggiornaMessaggio(settore, zona, nome = '') {
+      const testo = `Ciao${nome ? ' ' + nome : ''},
 
 ho visto che hai un ${settore} a ${zona}. Molte attività come la tua usano l'intelligenza artificiale per rispondere più velocemente ai clienti, gestire prenotazioni e creare promozioni.
 
@@ -179,7 +183,8 @@ Se ti interessa una soluzione semplice che ti fa risparmiare tempo ogni giorno, 
 Fammi sapere se vuoi maggiori dettagli.
 
 Grazie`;
-      }, 600);
+      document.getElementById('messaggio').textContent = testo;
+      return testo;
     }
 
     function renderLeads() {
@@ -195,7 +200,7 @@ Grazie`;
             <span class="status-badge ${l.status}">${statusLabel(l.status)}</span><br>
             Zona: ${l.zona}<br>
             <em>${l.motivo}</em><br>
-            <button class="btn-send" onclick="preparaInvio(${l.id})">Prepara messaggio</button>
+            <button class="btn-send" onclick="apriEmail(${l.id})">Apri email</button>
             <button class="btn-status" onclick="cambiaStatus(${l.id}, 'contattato')">Contattato</button>
             <button class="btn-status" onclick="cambiaStatus(${l.id}, 'visto')">Ha visto</button>
             <button class="btn-status" onclick="cambiaStatus(${l.id}, 'risposto')">Ha risposto</button>
@@ -218,21 +223,17 @@ Grazie`;
       renderLeads();
     }
 
-    function preparaInvio(id) {
+    function apriEmail(id) {
       const lead = leads.find(l => l.id === id);
       if (!lead) return;
-      document.getElementById('boxMessaggio').style.display = 'block';
-      document.getElementById('messaggio').textContent =
-`Ciao ${lead.nome},
-
-ho visto il tuo ${document.getElementById('settore').value} a ${lead.zona}. Molte attività come la tua usano l'intelligenza artificiale per rispondere più velocemente ai clienti e gestire meglio le attività quotidiane.
-
-Se ti interessa una soluzione semplice, posso spiegarti in 2 minuti come funziona.
-
-Fammi sapere se vuoi maggiori dettagli.
-
-Grazie`;
-      window.scrollTo(0, document.body.scrollHeight);
+      const settore = document.getElementById('settore').value;
+      const testo = aggiornaMessaggio(settore, lead.zona, lead.nome);
+      const subject = encodeURIComponent('Proposta AI per ' + lead.nome);
+      const body = encodeURIComponent(testo);
+      // Apre l'app email con il messaggio precompilato. L'utente deve inserire l'indirizzo del destinatario.
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      // Segna come contattato
+      cambiaStatus(id, 'contattato');
     }
 
     renderLeads();
