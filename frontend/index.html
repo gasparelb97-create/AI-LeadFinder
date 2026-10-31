@@ -7,43 +7,57 @@
   <style>
     body {
       font-family: system-ui, sans-serif;
-      max-width: 600px;
-      margin: 30px auto;
+      max-width: 640px;
+      margin: 20px auto;
       padding: 16px;
       background: #f1f5f9;
       color: #1e293b;
     }
-    h1 { font-size: 28px; margin-bottom: 4px; }
-    .intro { color: #475569; margin-bottom: 20px; font-size: 16px; }
+    h1 { font-size: 26px; margin-bottom: 4px; }
+    .intro { color: #475569; margin-bottom: 16px; }
     .box {
       background: white;
       border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
     label { display: block; font-weight: 600; margin-bottom: 6px; }
-    input {
+    input, select {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       border: 1px solid #cbd5e1;
       border-radius: 10px;
       font-size: 16px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       box-sizing: border-box;
     }
-    button {
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .preset {
+      background: #e2e8f0;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .preset.active { background: #2563eb; color: white; }
+    button.main {
       width: 100%;
       background: #2563eb;
       color: white;
       border: none;
-      padding: 16px;
+      padding: 14px;
       border-radius: 12px;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 600;
       cursor: pointer;
     }
-    button:active { background: #1d4ed8; }
     .lead {
       background: #eff6ff;
       padding: 14px;
@@ -51,6 +65,17 @@
       margin-bottom: 10px;
       border-left: 4px solid #2563eb;
     }
+    .lead button {
+      margin-top: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+    .btn-send { background: #16a34a; color: white; }
+    .btn-status { background: #e2e8f0; }
     .messaggio {
       background: #f8fafc;
       padding: 14px;
@@ -59,67 +84,158 @@
       font-size: 15px;
       line-height: 1.5;
     }
-    .step { font-size: 14px; color: #64748b; margin-top: 6px; }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    .da-contattare { background: #fef3c7; color: #92400e; }
+    .contattato { background: #dbeafe; color: #1e40af; }
+    .visto { background: #fde68a; color: #92400e; }
+    .risposto { background: #bbf7d0; color: #166534; }
   </style>
 </head>
 <body>
   <h1>Trova clienti</h1>
-  <p class="intro">Scrivi cosa cerchi e la zona. Ti mostro aziende che potrebbero pagare per un servizio di AI.</p>
+  <p class="intro">Scegli il tipo di attività e la zona. Ti mostro aziende e puoi preparare il messaggio.</p>
 
   <div class="box">
-    <label>Cosa cerchi?</label>
-    <input type="text" id="settore" value="agenzia marketing" placeholder="es. ristorante, e-commerce, studio dentistico">
+    <label>Tipo di attività</label>
+    <div class="presets" id="presets">
+      <button class="preset active" data-val="pizzeria">Pizzeria</button>
+      <button class="preset" data-val="bar">Bar</button>
+      <button class="preset" data-val="ristorante">Ristorante</button>
+      <button class="preset" data-val="negozio">Negozio</button>
+      <button class="preset" data-val="agenzia">Agenzia</button>
+      <button class="preset" data-val="studio professionale">Studio</button>
+    </div>
+    <input type="hidden" id="settore" value="pizzeria">
 
-    <label>In quale zona?</label>
+    <label>Zona</label>
     <input type="text" id="zona" value="Milano" placeholder="es. Roma, Napoli, Firenze">
 
-    <button onclick="cerca()">Mostrami i clienti</button>
-    <p class="step">1. Premi il pulsante &nbsp;&nbsp; 2. Leggi i risultati &nbsp;&nbsp; 3. Copia il messaggio</p>
+    <button class="main" onclick="cerca()">Mostrami i clienti</button>
   </div>
 
   <div id="risultati"></div>
 
   <div class="box" id="boxMessaggio" style="display:none;">
-    <strong>Messaggio pronto da copiare</strong>
+    <strong>Messaggio pronto</strong>
     <div class="messaggio" id="messaggio"></div>
+    <p style="font-size:13px; color:#64748b; margin-top:8px;">Copia il messaggio e invialo manualmente (email o WhatsApp). Il tracking completo arriverà con l'integrazione reale.</p>
   </div>
 
   <script>
+    const presets = document.querySelectorAll('.preset');
+    presets.forEach(btn => {
+      btn.addEventListener('click', () => {
+        presets.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('settore').value = btn.dataset.val;
+      });
+    });
+
+    let leads = JSON.parse(localStorage.getItem('leads') || '[]');
+
     function cerca() {
-      const settore = document.getElementById('settore').value || 'azienda';
+      const settore = document.getElementById('settore').value;
       const zona = document.getElementById('zona').value || 'Italia';
       const risultati = document.getElementById('risultati');
 
       risultati.innerHTML = '<div class="box">Sto cercando...</div>';
 
       setTimeout(() => {
-        risultati.innerHTML = `
-          <h3 style="margin:16px 0 8px;">Clienti trovati</h3>
-          <div class="lead">
-            <strong>Agenzia Digital Milano</strong><br>
-            Fa marketing per tanti clienti a ${zona}.<br>
-            <em>Può usare AI per creare post e rispondere ai messaggi più velocemente.</em>
-          </div>
-          <div class="lead">
-            <strong>Studio ${settore.charAt(0).toUpperCase() + settore.slice(1)} ${zona}</strong><br>
-            Lavora con molti clienti e ha attività ripetitive.<br>
-            <em>Potrebbe pagare per un'AI che gli risparmia tempo ogni giorno.</em>
-          </div>
-        `;
+        const nuovi = [
+          {
+            id: Date.now() + 1,
+            nome: settore.charAt(0).toUpperCase() + settore.slice(1) + ' Da Mario',
+            zona,
+            motivo: 'Ha molti clienti e attività ripetitive (ordini, messaggi, prenotazioni).',
+            status: 'da-contattare'
+          },
+          {
+            id: Date.now() + 2,
+            nome: 'Il ' + settore.charAt(0).toUpperCase() + settore.slice(1) + ' del Centro',
+            zona,
+            motivo: 'Lavora tanto con il pubblico e potrebbe automatizzare risposte e promozioni.',
+            status: 'da-contattare'
+          }
+        ];
+
+        leads = [...nuovi, ...leads].slice(0, 20);
+        localStorage.setItem('leads', JSON.stringify(leads));
+        renderLeads();
 
         document.getElementById('boxMessaggio').style.display = 'block';
         document.getElementById('messaggio').textContent =
 `Ciao,
 
-ho visto che lavori nel settore ${settore} a ${zona}. Molte realtà come la tua usano l'intelligenza artificiale per risparmiare tempo su messaggi, contenuti e attività ripetitive.
+ho visto che hai un ${settore} a ${zona}. Molte attività come la tua usano l'intelligenza artificiale per rispondere più velocemente ai clienti, gestire prenotazioni e creare promozioni.
 
-Se ti interessa una soluzione semplice che si adatta al tuo lavoro, posso spiegarti in 2 minuti come funziona.
+Se ti interessa una soluzione semplice che ti fa risparmiare tempo ogni giorno, posso spiegarti in 2 minuti come funziona.
 
 Fammi sapere se vuoi maggiori dettagli.
 
 Grazie`;
-      }, 700);
+      }, 600);
     }
+
+    function renderLeads() {
+      const risultati = document.getElementById('risultati');
+      if (leads.length === 0) {
+        risultati.innerHTML = '';
+        return;
+      }
+      risultati.innerHTML = '<h3 style="margin:16px 0 8px;">Clienti trovati</h3>' +
+        leads.map(l => `
+          <div class="lead">
+            <strong>${l.nome}</strong>
+            <span class="status-badge ${l.status}">${statusLabel(l.status)}</span><br>
+            Zona: ${l.zona}<br>
+            <em>${l.motivo}</em><br>
+            <button class="btn-send" onclick="preparaInvio(${l.id})">Prepara messaggio</button>
+            <button class="btn-status" onclick="cambiaStatus(${l.id}, 'contattato')">Contattato</button>
+            <button class="btn-status" onclick="cambiaStatus(${l.id}, 'visto')">Ha visto</button>
+            <button class="btn-status" onclick="cambiaStatus(${l.id}, 'risposto')">Ha risposto</button>
+          </div>
+        `).join('');
+    }
+
+    function statusLabel(s) {
+      return {
+        'da-contattare': 'Da contattare',
+        'contattato': 'Contattato',
+        'visto': 'Ha visto',
+        'risposto': 'Ha risposto'
+      }[s] || s;
+    }
+
+    function cambiaStatus(id, nuovo) {
+      leads = leads.map(l => l.id === id ? { ...l, status: nuovo } : l);
+      localStorage.setItem('leads', JSON.stringify(leads));
+      renderLeads();
+    }
+
+    function preparaInvio(id) {
+      const lead = leads.find(l => l.id === id);
+      if (!lead) return;
+      document.getElementById('boxMessaggio').style.display = 'block';
+      document.getElementById('messaggio').textContent =
+`Ciao ${lead.nome},
+
+ho visto il tuo ${document.getElementById('settore').value} a ${lead.zona}. Molte attività come la tua usano l'intelligenza artificiale per rispondere più velocemente ai clienti e gestire meglio le attività quotidiane.
+
+Se ti interessa una soluzione semplice, posso spiegarti in 2 minuti come funziona.
+
+Fammi sapere se vuoi maggiori dettagli.
+
+Grazie`;
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    renderLeads();
   </script>
 </body>
 </html>
